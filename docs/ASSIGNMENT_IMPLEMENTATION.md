@@ -26,6 +26,18 @@ review, review_media, return_request
 
 Each table has a primary key. Relationship integrity is enforced using foreign keys. The database also contains meaningful sample data, with at least 5 rows per table. `user_account` has 15 rows because it contains 5 buyers, 5 sellers, and 5 administrators.
 
+### Actual Table Schemas
+
+Before explaining Section 2, we document the concrete schema used in Section 1 so every later procedure, function, and application screen has a clear table foundation.
+
+The actual MySQL `CREATE TABLE` statements for all 23 tables are recorded here:
+
+```text
+docs/SECTION_1_TABLE_SCHEMAS.md
+```
+
+That schema reference was generated from the live `marketplace_eerd` database after the domain `CHECK` constraints were added. It includes the columns, primary keys, foreign keys, unique keys, generated column for default address handling, and table-level checks for each table.
+
 ### How Tables Were Created
 
 The tables were created with MySQL `CREATE TABLE` statements using:
