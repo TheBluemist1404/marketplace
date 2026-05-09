@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Marketplace Database Demo
 
-## Getting Started
+Next.js app for Database Systems Assignment 2, Section 3. It connects to the MySQL RDS database and demonstrates the stored procedures/functions from Section 2 through a small admin-style interface.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js App Router
+- React
+- TypeScript
+- MySQL via `mysql2/promise`
+- Tailwind CSS
+
+## Setup
+
+Create `.env.local` from `.env.example` and fill in the database password.
 
 ```bash
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database Calls
 
-## Learn More
+The browser never connects directly to MySQL. The flow is:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+Client UI -> Next.js API route -> mysql2 pool -> MySQL stored procedure/function
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Implemented API routes:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+GET    /api/reference
+GET    /api/variants/search       -> CALL sp_search_variants
+POST   /api/variants              -> CALL sp_variant_insert
+PUT    /api/variants/:id          -> CALL sp_variant_update
+DELETE /api/variants/:id          -> CALL sp_variant_delete
+GET    /api/reports/top-stores    -> CALL sp_top_selling_stores
+GET    /api/reports/store-revenue -> SELECT fn_CalculateActualStoreRevenue
+GET    /api/vouchers/validate     -> SELECT fn_ValidateVoucher
+```
 
-## Deploy on Vercel
+## Assignment Mapping
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Section 3.1:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Product Variant Management screen.
+- Insert, update, and delete use the procedures from Section 2.1.
+
+Section 3.2:
+
+- Variant list/search uses `sp_search_variants` from Section 2.3.
+- The list is related to the Section 2.1 table, `product_variant`.
+- The screen includes search, filtering, row selection, update, delete, validation, and error display.
+
+Section 3.3:
+
+- Store Sales Report uses `sp_top_selling_stores`.
+- Actual Store Revenue uses `fn_CalculateActualStoreRevenue`.
+- Voucher Validation uses `fn_ValidateVoucher`.
+
+## Notes
+
+- `.env.local` is ignored by git.
+- Existing seeded variants can be blocked from deletion if they are referenced by cart/order data. For the clean delete demo, insert a new unused variant first, then delete that new row.
