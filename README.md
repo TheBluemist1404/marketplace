@@ -70,3 +70,9 @@ Section 3.3:
 
 - `.env.local` is ignored by git.
 - Existing seeded variants can be blocked from deletion if they are referenced by cart/order data. For the clean delete demo, insert a new unused variant first, then delete that new row.
+
+## Documentation
+
+- [Demo guide](docs/DEMO_GUIDE.md)
+- [Assignment implementation notes](docs/ASSIGNMENT_IMPLEMENTATION.md)
+- [Domain check constraints](docs/DOMAIN_CHECK_CONSTRAINTS.sql)
