@@ -157,3 +157,11 @@ RDS security group inbound rule
 Database name marketplace_eerd
 Stored procedure/function names
 ```
+
+For direct MySQL Workbench enum tests, run this once in the query tab first:
+
+```sql
+SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+```
+
+The app already applies that setting for its own database sessions.

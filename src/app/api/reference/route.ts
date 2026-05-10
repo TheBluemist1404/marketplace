@@ -30,7 +30,7 @@ export async function GET() {
         "SELECT product_id, product_name FROM product ORDER BY product_name ASC",
       ),
       query<StoreOption[]>("SELECT store_id, store_name FROM store ORDER BY store_name ASC"),
-      query<OrderOption[]>("SELECT order_id, order_status FROM orders ORDER BY order_id ASC"),
+      query<OrderOption[]>("SELECT order_id, order_status FROM `order` ORDER BY order_id ASC"),
       query<VoucherOption[]>(
         "SELECT voucher_code, discount_type FROM voucher ORDER BY voucher_code ASC",
       ),

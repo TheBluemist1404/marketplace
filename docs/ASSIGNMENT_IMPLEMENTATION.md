@@ -20,11 +20,13 @@ store, category, product, product_variant
 address, buyer_address
 cart, cart_item
 voucher, voucher_condition, buyer_voucher
-orders, order_item, shipment, payment
+`order`, order_item, shipment, payment
 review, review_media, return_request
 ```
 
 Each table has a primary key. Relationship integrity is enforced using foreign keys. The database also contains meaningful sample data, with at least 5 rows per table. `user_account` has 15 rows because it contains 5 buyers, 5 sellers, and 5 administrators.
+
+The order entity is implemented as the table `` `order` ``. Because `ORDER` is a MySQL keyword, SQL statements quote the table name with backticks.
 
 ### Actual Table Schemas
 
@@ -36,7 +38,7 @@ The actual MySQL `CREATE TABLE` statements for all 23 tables are recorded here:
 docs/SECTION_1_TABLE_SCHEMAS.md
 ```
 
-That schema reference was generated from the live `marketplace_eerd` database after the domain `CHECK` constraints were added. It includes the columns, primary keys, foreign keys, unique keys, generated column for default address handling, and table-level checks for each table.
+That schema reference was generated from the live `marketplace_eerd` database after the enum conversion and `orders` to `` `order` `` rename. It includes the columns, primary keys, foreign keys, unique keys, generated column for default address handling, enum domains, and table-level numeric/date checks for each table.
 
 ### How Tables Were Created
 
@@ -94,16 +96,20 @@ usage_count <= amount
 end_date >= start_date
 ```
 
-Domain constraints are also enforced at table level for finite status/type fields. Examples:
+Finite status/type domains are implemented as actual MySQL `ENUM` columns. Examples:
 
 ```sql
-product_variant.status IN ('active', 'available', 'out_of_stock', 'discontinued')
-orders.order_status IN ('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'return_requested')
-payment.payment_status IN ('pending', 'paid', 'failed', 'refunded', 'cancelled')
-voucher.discount_type IN ('percentage', 'fixed_amount')
+product_variant.status ENUM('active', 'available', 'out_of_stock', 'discontinued')
+`order`.order_status ENUM('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'return_requested')
+payment.payment_status ENUM('pending', 'paid', 'failed', 'refunded', 'cancelled')
+voucher.discount_type ENUM('percentage', 'fixed_amount')
 ```
 
-These checks prevent invalid values from being inserted directly into the database, even if someone bypasses the application or stored procedures.
+The Next.js API sets strict SQL mode for each database session so invalid enum values are rejected instead of being converted to MySQL's empty enum value. For direct Workbench demos, run the same session setting before testing invalid enum values:
+
+```sql
+SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+```
 
 ### Special Constraint: One Default Address Per Buyer
 
@@ -242,7 +248,7 @@ Prevent return requests for orders that are not delivered.
 Prevent voucher usage_count from exceeding buyer voucher amount during order changes.
 ```
 
-The table-level constraints added in Section 1 should not be duplicated as triggers, because the assignment says constraints that can be checked in table creation statements should not be validated using triggers.
+The table-level numeric/date constraints and enum domains from Section 1 should not be duplicated as triggers, because the assignment says constraints that can be checked in table creation statements should not be validated using triggers.
 
 ### Section 2.3 - Display Procedures
 
@@ -279,7 +285,7 @@ Why it is useful:
 
 ```text
 Shows store sales performance for a date range and minimum revenue.
-Joins store, product, product_variant, order_item, and orders.
+Joins store, product, product_variant, order_item, and `` `order` ``.
 Uses SUM, COUNT, AVG, GROUP BY, HAVING, WHERE, and ORDER BY.
 ```
 

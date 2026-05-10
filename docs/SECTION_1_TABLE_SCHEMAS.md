@@ -1,16 +1,10 @@
 # Section 1 Table Schemas
 
-This file records the actual MySQL table schemas used for Section 1. It is generated from the live `marketplace_eerd` database after the table-level domain constraints were added.
+Generated from the live `marketplace_eerd` MySQL database after the enum-domain conversion and the `orders` to `` `order` `` table rename.
 
-Database:
+Note: `` `order` `` is quoted because `ORDER` is a MySQL keyword.
 
-```sql
-USE marketplace_eerd;
-```
-
-## Tables
-
-### `address`
+## `address`
 
 ```sql
 CREATE TABLE `address` (
@@ -24,7 +18,7 @@ CREATE TABLE `address` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `administrator`
+## `administrator`
 
 ```sql
 CREATE TABLE `administrator` (
@@ -32,15 +26,14 @@ CREATE TABLE `administrator` (
   `employee_id` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `staff_name` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
   `management_role` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `working_status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `working_status` enum('working','on_leave','inactive','terminated') COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`account_id`),
   UNIQUE KEY `employee_id` (`employee_id`),
-  CONSTRAINT `fk_administrator_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`),
-  CONSTRAINT `chk_administrator_working_status` CHECK ((`working_status` in (_utf8mb4'working',_utf8mb4'on_leave',_utf8mb4'inactive',_utf8mb4'terminated')))
+  CONSTRAINT `fk_administrator_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `buyer`
+## `buyer`
 
 ```sql
 CREATE TABLE `buyer` (
@@ -48,14 +41,13 @@ CREATE TABLE `buyer` (
   `first_name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `last_name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `date_of_birth` date DEFAULT NULL,
-  `gender` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `gender` enum('male','female','other','prefer_not_to_say') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`account_id`),
-  CONSTRAINT `fk_buyer_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`),
-  CONSTRAINT `chk_buyer_gender` CHECK (((`gender` is null) or (`gender` in (_utf8mb4'male',_utf8mb4'female',_utf8mb4'other',_utf8mb4'prefer_not_to_say'))))
+  CONSTRAINT `fk_buyer_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `buyer_address`
+## `buyer_address`
 
 ```sql
 CREATE TABLE `buyer_address` (
@@ -76,7 +68,7 @@ CREATE TABLE `buyer_address` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `buyer_voucher`
+## `buyer_voucher`
 
 ```sql
 CREATE TABLE `buyer_voucher` (
@@ -97,7 +89,7 @@ CREATE TABLE `buyer_voucher` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `cart`
+## `cart`
 
 ```sql
 CREATE TABLE `cart` (
@@ -109,7 +101,7 @@ CREATE TABLE `cart` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `cart_item`
+## `cart_item`
 
 ```sql
 CREATE TABLE `cart_item` (
@@ -127,7 +119,7 @@ CREATE TABLE `cart_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `category`
+## `category`
 
 ```sql
 CREATE TABLE `category` (
@@ -139,7 +131,7 @@ CREATE TABLE `category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `notification`
+## `notification`
 
 ```sql
 CREATE TABLE `notification` (
@@ -147,18 +139,36 @@ CREATE TABLE `notification` (
   `account_id` bigint NOT NULL,
   `title` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
   `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('order','voucher','shipment','payment','return','system','promotion') COLLATE utf8mb4_unicode_ci NOT NULL,
   `timestamp` datetime NOT NULL,
-  `status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('read','unread','archived') COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`notification_id`),
   KEY `idx_notification_account` (`account_id`),
-  CONSTRAINT `fk_notification_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`),
-  CONSTRAINT `chk_notification_status` CHECK ((`status` in (_utf8mb4'read',_utf8mb4'unread',_utf8mb4'archived'))),
-  CONSTRAINT `chk_notification_type` CHECK ((`type` in (_utf8mb4'order',_utf8mb4'voucher',_utf8mb4'shipment',_utf8mb4'payment',_utf8mb4'return',_utf8mb4'system',_utf8mb4'promotion')))
+  CONSTRAINT `fk_notification_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `order_item`
+## `order`
+
+```sql
+CREATE TABLE `order` (
+  `order_id` bigint NOT NULL,
+  `buyer_id` bigint NOT NULL,
+  `buyer_address_id` bigint NOT NULL,
+  `buyer_voucher_id` bigint DEFAULT NULL,
+  `order_date` datetime NOT NULL,
+  `order_status` enum('pending','paid','processing','shipped','delivered','cancelled','return_requested') COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`order_id`),
+  KEY `idx_orders_buyer` (`buyer_id`),
+  KEY `idx_orders_buyer_address` (`buyer_address_id`),
+  KEY `idx_orders_buyer_voucher` (`buyer_voucher_id`),
+  CONSTRAINT `fk_orders_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
+  CONSTRAINT `fk_orders_buyer_address` FOREIGN KEY (`buyer_address_id`) REFERENCES `buyer_address` (`buyer_address_id`),
+  CONSTRAINT `fk_orders_buyer_voucher` FOREIGN KEY (`buyer_voucher_id`) REFERENCES `buyer_voucher` (`buyer_voucher_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+## `order_item`
 
 ```sql
 CREATE TABLE `order_item` (
@@ -168,54 +178,31 @@ CREATE TABLE `order_item` (
   `unit_price` decimal(12,2) NOT NULL,
   PRIMARY KEY (`order_id`,`variant_id`),
   KEY `idx_order_item_variant` (`variant_id`),
-  CONSTRAINT `fk_order_item_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `fk_order_item_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`),
   CONSTRAINT `fk_order_item_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variant` (`variant_id`),
   CONSTRAINT `order_item_chk_1` CHECK ((`quantity` > 0)),
   CONSTRAINT `order_item_chk_2` CHECK ((`unit_price` >= 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `orders`
-
-```sql
-CREATE TABLE `orders` (
-  `order_id` bigint NOT NULL,
-  `buyer_id` bigint NOT NULL,
-  `buyer_address_id` bigint NOT NULL,
-  `buyer_voucher_id` bigint DEFAULT NULL,
-  `order_date` datetime NOT NULL,
-  `order_status` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`order_id`),
-  KEY `idx_orders_buyer` (`buyer_id`),
-  KEY `idx_orders_buyer_address` (`buyer_address_id`),
-  KEY `idx_orders_buyer_voucher` (`buyer_voucher_id`),
-  CONSTRAINT `fk_orders_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
-  CONSTRAINT `fk_orders_buyer_address` FOREIGN KEY (`buyer_address_id`) REFERENCES `buyer_address` (`buyer_address_id`),
-  CONSTRAINT `fk_orders_buyer_voucher` FOREIGN KEY (`buyer_voucher_id`) REFERENCES `buyer_voucher` (`buyer_voucher_id`),
-  CONSTRAINT `chk_orders_status` CHECK ((`order_status` in (_utf8mb4'pending',_utf8mb4'paid',_utf8mb4'processing',_utf8mb4'shipped',_utf8mb4'delivered',_utf8mb4'cancelled',_utf8mb4'return_requested')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### `payment`
+## `payment`
 
 ```sql
 CREATE TABLE `payment` (
   `payment_id` bigint NOT NULL,
   `order_id` bigint NOT NULL,
-  `payment_method` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payment_method` enum('e_wallet','credit_card','bank_transfer','cash_on_delivery') COLLATE utf8mb4_unicode_ci NOT NULL,
   `payment_time` datetime NOT NULL,
-  `payment_status` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payment_status` enum('pending','paid','failed','refunded','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL,
   `paid_amount` decimal(12,2) NOT NULL,
   PRIMARY KEY (`payment_id`),
   UNIQUE KEY `order_id` (`order_id`),
-  CONSTRAINT `fk_payment_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  CONSTRAINT `chk_payment_method` CHECK ((`payment_method` in (_utf8mb4'e_wallet',_utf8mb4'credit_card',_utf8mb4'bank_transfer',_utf8mb4'cash_on_delivery'))),
-  CONSTRAINT `chk_payment_status` CHECK ((`payment_status` in (_utf8mb4'pending',_utf8mb4'paid',_utf8mb4'failed',_utf8mb4'refunded',_utf8mb4'cancelled'))),
+  CONSTRAINT `fk_payment_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`),
   CONSTRAINT `payment_chk_1` CHECK ((`paid_amount` >= 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `product`
+## `product`
 
 ```sql
 CREATE TABLE `product` (
@@ -233,7 +220,7 @@ CREATE TABLE `product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `product_variant`
+## `product_variant`
 
 ```sql
 CREATE TABLE `product_variant` (
@@ -241,20 +228,19 @@ CREATE TABLE `product_variant` (
   `product_id` bigint NOT NULL,
   `option_value` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
   `price` decimal(12,2) NOT NULL,
-  `status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('active','available','out_of_stock','discontinued') COLLATE utf8mb4_unicode_ci NOT NULL,
   `stock_quantity` int NOT NULL,
   `creation_time` datetime NOT NULL,
   PRIMARY KEY (`variant_id`),
   UNIQUE KEY `uq_product_variant_option` (`product_id`,`option_value`),
   KEY `idx_variant_product` (`product_id`),
   CONSTRAINT `fk_variant_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
-  CONSTRAINT `chk_product_variant_status` CHECK ((`status` in (_utf8mb4'active',_utf8mb4'available',_utf8mb4'out_of_stock',_utf8mb4'discontinued'))),
   CONSTRAINT `product_variant_chk_1` CHECK ((`price` >= 0)),
   CONSTRAINT `product_variant_chk_2` CHECK ((`stock_quantity` >= 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `return_request`
+## `return_request`
 
 ```sql
 CREATE TABLE `return_request` (
@@ -265,7 +251,7 @@ CREATE TABLE `return_request` (
   `variant_id` bigint NOT NULL,
   `request_date` date NOT NULL,
   `reason` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `request_status` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `request_status` enum('pending','reviewing','approved','rejected','closed') COLLATE utf8mb4_unicode_ci NOT NULL,
   `requested_refund_amount` decimal(12,2) NOT NULL,
   `handling_result` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`request_id`),
@@ -275,12 +261,11 @@ CREATE TABLE `return_request` (
   CONSTRAINT `fk_return_admin` FOREIGN KEY (`admin_id`) REFERENCES `administrator` (`account_id`),
   CONSTRAINT `fk_return_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
   CONSTRAINT `fk_return_order_item` FOREIGN KEY (`order_id`, `variant_id`) REFERENCES `order_item` (`order_id`, `variant_id`),
-  CONSTRAINT `chk_return_request_status` CHECK ((`request_status` in (_utf8mb4'pending',_utf8mb4'reviewing',_utf8mb4'approved',_utf8mb4'rejected',_utf8mb4'closed'))),
   CONSTRAINT `return_request_chk_1` CHECK ((`requested_refund_amount` >= 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `review`
+## `review`
 
 ```sql
 CREATE TABLE `review` (
@@ -301,7 +286,7 @@ CREATE TABLE `review` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `review_media`
+## `review_media`
 
 ```sql
 CREATE TABLE `review_media` (
@@ -312,7 +297,7 @@ CREATE TABLE `review_media` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `seller`
+## `seller`
 
 ```sql
 CREATE TABLE `seller` (
@@ -320,16 +305,15 @@ CREATE TABLE `seller` (
   `tax_id` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `business_type` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `owner_name` varchar(160) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `verification_status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `verification_status` enum('pending','verified','rejected','suspended') COLLATE utf8mb4_unicode_ci NOT NULL,
   `product_management` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`account_id`),
   UNIQUE KEY `tax_id` (`tax_id`),
-  CONSTRAINT `fk_seller_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`),
-  CONSTRAINT `chk_seller_verification_status` CHECK ((`verification_status` in (_utf8mb4'pending',_utf8mb4'verified',_utf8mb4'rejected',_utf8mb4'suspended')))
+  CONSTRAINT `fk_seller_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `shipment`
+## `shipment`
 
 ```sql
 CREATE TABLE `shipment` (
@@ -337,8 +321,8 @@ CREATE TABLE `shipment` (
   `order_id` bigint NOT NULL,
   `buyer_address_id` bigint NOT NULL,
   `tracking_code` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `shipping_method` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `shipping_status` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `shipping_method` enum('standard','express','same_day','pickup') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `shipping_status` enum('processing','in_transit','delivered','failed','returned','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL,
   `estimated_delivery_date` date DEFAULT NULL,
   `actual_delivery_date` date DEFAULT NULL,
   PRIMARY KEY (`shipment_id`),
@@ -346,13 +330,11 @@ CREATE TABLE `shipment` (
   UNIQUE KEY `tracking_code` (`tracking_code`),
   KEY `idx_shipment_address` (`buyer_address_id`),
   CONSTRAINT `fk_shipment_buyer_address` FOREIGN KEY (`buyer_address_id`) REFERENCES `buyer_address` (`buyer_address_id`),
-  CONSTRAINT `fk_shipment_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  CONSTRAINT `chk_shipment_method` CHECK ((`shipping_method` in (_utf8mb4'standard',_utf8mb4'express',_utf8mb4'same_day',_utf8mb4'pickup'))),
-  CONSTRAINT `chk_shipment_status` CHECK ((`shipping_status` in (_utf8mb4'processing',_utf8mb4'in_transit',_utf8mb4'delivered',_utf8mb4'failed',_utf8mb4'returned',_utf8mb4'cancelled')))
+  CONSTRAINT `fk_shipment_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `store`
+## `store`
 
 ```sql
 CREATE TABLE `store` (
@@ -368,7 +350,7 @@ CREATE TABLE `store` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `user_account`
+## `user_account`
 
 ```sql
 CREATE TABLE `user_account` (
@@ -378,22 +360,21 @@ CREATE TABLE `user_account` (
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `phone_number` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `creation_date` datetime NOT NULL,
-  `account_status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `account_status` enum('active','inactive','suspended','locked','pending') COLLATE utf8mb4_unicode_ci NOT NULL,
   `account_type` enum('buyer','seller','administrator') COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`account_id`),
   UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`),
-  CONSTRAINT `chk_user_account_status` CHECK ((`account_status` in (_utf8mb4'active',_utf8mb4'inactive',_utf8mb4'suspended',_utf8mb4'locked',_utf8mb4'pending')))
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `voucher`
+## `voucher`
 
 ```sql
 CREATE TABLE `voucher` (
   `voucher_code` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `store_id` bigint NOT NULL,
-  `discount_type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `discount_type` enum('percentage','fixed_amount') COLLATE utf8mb4_unicode_ci NOT NULL,
   `discount_value` decimal(12,2) NOT NULL,
   `global_usage_limit` int DEFAULT NULL,
   `applicable_conditions` text COLLATE utf8mb4_unicode_ci,
@@ -403,25 +384,22 @@ CREATE TABLE `voucher` (
   KEY `idx_voucher_store` (`store_id`),
   CONSTRAINT `fk_voucher_store` FOREIGN KEY (`store_id`) REFERENCES `store` (`store_id`),
   CONSTRAINT `chk_voucher_dates` CHECK ((`end_date` >= `start_date`)),
-  CONSTRAINT `chk_voucher_discount_type` CHECK ((`discount_type` in (_utf8mb4'percentage',_utf8mb4'fixed_amount'))),
   CONSTRAINT `voucher_chk_1` CHECK ((`discount_value` >= 0)),
   CONSTRAINT `voucher_chk_2` CHECK (((`global_usage_limit` is null) or (`global_usage_limit` >= 0)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### `voucher_condition`
+## `voucher_condition`
 
 ```sql
 CREATE TABLE `voucher_condition` (
   `condition_id` bigint NOT NULL,
   `voucher_code` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `condition_type` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `operator` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `condition_type` enum('minimum_order_amount','category_id') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `operator` enum('=','>','>=','<','<=','!=') COLLATE utf8mb4_unicode_ci NOT NULL,
   `value` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`condition_id`),
   KEY `idx_voucher_condition_voucher` (`voucher_code`),
-  CONSTRAINT `fk_condition_voucher` FOREIGN KEY (`voucher_code`) REFERENCES `voucher` (`voucher_code`),
-  CONSTRAINT `chk_voucher_condition_operator` CHECK ((`operator` in (_utf8mb4'=',_utf8mb4'>',_utf8mb4'>=',_utf8mb4'<',_utf8mb4'<=',_utf8mb4'!='))),
-  CONSTRAINT `chk_voucher_condition_type` CHECK ((`condition_type` in (_utf8mb4'minimum_order_amount',_utf8mb4'category_id')))
+  CONSTRAINT `fk_condition_voucher` FOREIGN KEY (`voucher_code`) REFERENCES `voucher` (`voucher_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
