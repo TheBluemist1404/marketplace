@@ -262,11 +262,12 @@ This means Section 2.2 still needs to be added before the final assignment submi
 Good trigger candidates for this schema:
 
 ```text
-Update cart.total_items when cart_item changes.
 Update store rating when review changes.
 Prevent return requests for orders that are not delivered.
 Prevent voucher usage_count from exceeding buyer voucher amount during order changes.
 ```
+
+`cart.total_items` is intentionally not stored as a table column because it is a derived value. It should be calculated from `cart_item`, for example with `SUM(cart_item.quantity)` grouped by `cart_id`, or exposed through a view/query if the application needs to display it.
 
 The table-level numeric/date constraints and enum domains from Section 1 should not be duplicated as triggers, because the assignment says constraints that can be checked in table creation statements should not be validated using triggers.
 
