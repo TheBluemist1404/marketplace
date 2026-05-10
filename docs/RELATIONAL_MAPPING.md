@@ -2,7 +2,7 @@
 
 Generated from the live `marketplace_eerd` MySQL schema. This is written in a DrawSQL-style table/relationship format so it can be used beside the EERD when explaining the relational schema.
 
-Note: `` `order` `` is quoted in SQL because `ORDER` is a MySQL keyword. `cart.total_items` is a stored derived/cache column maintained by triggers from `cart_item`.
+Note: the relational mapping labels the table as `order`. In raw MySQL SQL statements, the table still needs backticks because `ORDER` is a keyword. `cart.total_items` is a stored derived/cache column maintained by triggers from `cart_item`.
 
 ## Schema Overview
 

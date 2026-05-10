@@ -82,7 +82,7 @@ Table notification {
   status enum('read','unread','archived') [not null]
 }
 
-Table `order` {
+Table order {
   order_id bigint [pk, increment, not null]
   buyer_id bigint [not null]
   buyer_address_id bigint [not null]
@@ -231,12 +231,12 @@ Ref: cart.(buyer_id) > buyer.(account_id)
 Ref: cart_item.(cart_id) > cart.(cart_id)
 Ref: cart_item.(variant_id) > product_variant.(variant_id)
 Ref: notification.(account_id) > user_account.(account_id)
-Ref: `order`.(buyer_id) > buyer.(account_id)
-Ref: `order`.(buyer_address_id) > buyer_address.(buyer_address_id)
-Ref: `order`.(buyer_voucher_id) > buyer_voucher.(buyer_voucher_id)
-Ref: order_item.(order_id) > `order`.(order_id)
+Ref: order.(buyer_id) > buyer.(account_id)
+Ref: order.(buyer_address_id) > buyer_address.(buyer_address_id)
+Ref: order.(buyer_voucher_id) > buyer_voucher.(buyer_voucher_id)
+Ref: order_item.(order_id) > order.(order_id)
 Ref: order_item.(variant_id) > product_variant.(variant_id)
-Ref: payment.(order_id) > `order`.(order_id)
+Ref: payment.(order_id) > order.(order_id)
 Ref: product.(category_id) > category.(category_id)
 Ref: product.(store_id) > store.(store_id)
 Ref: product_variant.(product_id) > product.(product_id)
@@ -248,7 +248,7 @@ Ref: review.(order_id, variant_id) > order_item.(order_id, variant_id)
 Ref: review_media.(review_id) > review.(review_id)
 Ref: seller.(account_id) > user_account.(account_id)
 Ref: shipment.(buyer_address_id) > buyer_address.(buyer_address_id)
-Ref: shipment.(order_id) > `order`.(order_id)
+Ref: shipment.(order_id) > order.(order_id)
 Ref: store.(seller_id) > seller.(account_id)
 Ref: voucher.(store_id) > store.(store_id)
 Ref: voucher_condition.(voucher_code) > voucher.(voucher_code)
