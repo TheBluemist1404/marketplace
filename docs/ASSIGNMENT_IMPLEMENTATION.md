@@ -83,6 +83,20 @@ buyers, sellers, stores, products, variants, vouchers, orders, payments, shipmen
 
 The sample data is connected across tables. For example, orders reference real buyers, order items reference real product variants, reviews reference purchased order items, and vouchers reference existing stores.
 
+The seed data was expanded beyond the minimum requirement so Section 3 has a more realistic workflow:
+
+```text
+12 products
+24 product variants
+17 orders
+47 order items
+7 vouchers
+12 voucher conditions
+6 return requests
+```
+
+This creates realistic test cases: one order can contain many items, the same variant can appear in many orders, one buyer voucher can be used by more than one order, and approved returns change the actual revenue calculation.
+
 ### Important Table-Level Constraints
 
 Numeric constraints are enforced at table level. Examples:
@@ -287,6 +301,7 @@ Why it is useful:
 Shows store sales performance for a date range and minimum revenue.
 Joins store, product, product_variant, order_item, and `` `order` ``.
 Uses SUM, COUNT, AVG, GROUP BY, HAVING, WHERE, and ORDER BY.
+The delivered rate counts distinct delivered orders, not delivered order-item rows, so multi-item orders do not inflate the rate.
 ```
 
 Why it is useful:

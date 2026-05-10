@@ -76,4 +76,5 @@ Section 3.3:
 - [Demo guide](docs/DEMO_GUIDE.md)
 - [Assignment implementation notes](docs/ASSIGNMENT_IMPLEMENTATION.md)
 - [Section 1 table schemas](docs/SECTION_1_TABLE_SCHEMAS.md)
+- [Sample data inserts](docs/SAMPLE_DATA_INSERTS.sql)
 - [Enum domain columns](docs/ENUM_DOMAIN_COLUMNS.sql)

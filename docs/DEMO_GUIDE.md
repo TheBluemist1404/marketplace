@@ -86,6 +86,20 @@ Screen:
 Reports
 ```
 
+The current seed data is intentionally richer than a minimum 5-row demo:
+
+```text
+12 products
+24 product variants
+17 orders
+47 order items
+7 vouchers
+12 voucher conditions
+6 return requests
+```
+
+This lets the report show multi-item orders, repeated variants across many orders, vouchers reused by buyers, cancelled/paid/shipped/delivered orders, and approved returns that affect actual revenue.
+
 Demo A:
 
 ```text
@@ -107,14 +121,22 @@ fn_CalculateActualStoreRevenue(1, '2026-03-01', '2026-03-31')
 Expected output:
 
 ```text
-actual revenue for the selected store and date range
+actual delivered revenue for Fresh Mart Market, excluding approved returned items
 ```
 
 Demo C:
 
 ```text
-fn_ValidateVoucher(1, 'FRESH10')
+fn_ValidateVoucher(1001, 'FRESH10')
 ```
+
+Good comparison:
+
+```text
+fn_ValidateVoucher(1001, 'HOME15')
+```
+
+`FRESH10` is valid for order `1001`; `HOME15` is not valid for that same order because the order does not satisfy the home-category condition.
 
 Possible result codes:
 

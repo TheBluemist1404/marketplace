@@ -172,7 +172,7 @@ export default function Home() {
   });
   const [revenue, setRevenue] = useState<number | null>(null);
   const [voucherParams, setVoucherParams] = useState({
-    orderId: "1",
+    orderId: "1001",
     voucherCode: "FRESH10",
   });
   const [voucherResult, setVoucherResult] = useState<{
