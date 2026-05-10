@@ -1,6 +1,6 @@
 # Section 1 Table Schemas
 
-Generated from the live `marketplace_eerd` MySQL database after the enum-domain conversion, the `orders` to `` `order` `` table rename, and the `AUTO_INCREMENT` surrogate-key update.
+Generated from the live `marketplace_eerd` MySQL database after the enum-domain conversion, the `orders` to `` `order` `` table rename, the `AUTO_INCREMENT` surrogate-key update, and the cart derived-cache column update.
 
 Note: `` `order` `` is quoted because `ORDER` is a MySQL keyword.
 
@@ -28,7 +28,7 @@ CREATE TABLE `administrator` (
   `management_role` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `working_status` enum('working','on_leave','inactive','terminated') COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`account_id`),
-  UNIQUE KEY `employee_id` (`employee_id`),
+  KEY `employee_id` (`employee_id`),
   CONSTRAINT `fk_administrator_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
@@ -61,8 +61,9 @@ CREATE TABLE `buyer_address` (
   PRIMARY KEY (`buyer_address_id`),
   UNIQUE KEY `uq_buyer_address_recipient` (`buyer_id`,`address_id`,`recipient_name`,`recipient_phone`),
   UNIQUE KEY `uq_buyer_default_address` (`default_buyer_id`),
-  KEY `idx_buyer_address_buyer` (`buyer_id`),
   KEY `idx_buyer_address_address` (`address_id`),
+  KEY `buyer_address_id` (`buyer_address_id`),
+  KEY `buyer_id` (`buyer_id`,`address_id`,`recipient_name`,`recipient_phone`),
   CONSTRAINT `fk_buyer_address_address` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`),
   CONSTRAINT `fk_buyer_address_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -95,6 +96,7 @@ CREATE TABLE `buyer_voucher` (
 CREATE TABLE `cart` (
   `cart_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
+  `total_items` int NOT NULL DEFAULT '0' COMMENT 'Derived: SUM(cart_item.quantity) - duoc trigger tu cap nhat',
   PRIMARY KEY (`cart_id`),
   UNIQUE KEY `buyer_id` (`buyer_id`),
   CONSTRAINT `fk_cart_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`)
@@ -237,7 +239,7 @@ CREATE TABLE `product_variant` (
   CONSTRAINT `fk_variant_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
   CONSTRAINT `product_variant_chk_1` CHECK ((`price` >= 0)),
   CONSTRAINT `product_variant_chk_2` CHECK ((`stock_quantity` >= 0))
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `return_request`
@@ -262,7 +264,7 @@ CREATE TABLE `return_request` (
   CONSTRAINT `fk_return_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
   CONSTRAINT `fk_return_order_item` FOREIGN KEY (`order_id`, `variant_id`) REFERENCES `order_item` (`order_id`, `variant_id`),
   CONSTRAINT `return_request_chk_1` CHECK ((`requested_refund_amount` >= 0))
-) ENGINE=InnoDB AUTO_INCREMENT=3007 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `review`
@@ -283,7 +285,7 @@ CREATE TABLE `review` (
   CONSTRAINT `fk_review_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
   CONSTRAINT `fk_review_order_item` FOREIGN KEY (`order_id`, `variant_id`) REFERENCES `order_item` (`order_id`, `variant_id`),
   CONSTRAINT `review_chk_1` CHECK ((`rating_score` between 1 and 5))
-) ENGINE=InnoDB AUTO_INCREMENT=9013 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `review_media`

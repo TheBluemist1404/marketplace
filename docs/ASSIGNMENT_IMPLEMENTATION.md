@@ -251,23 +251,24 @@ Task:
 2.2.2 Create trigger(s) to calculate a derived attribute.
 ```
 
-Current database status:
+Implemented triggers:
 
 ```text
-No triggers are currently present in the live database.
+trg_cartitem_after_insert
+trg_cartitem_after_update
+trg_cartitem_after_delete
+trg_return_request_before_insert
 ```
 
-This means Section 2.2 still needs to be added before the final assignment submission if the group has not implemented triggers elsewhere.
+The cart item triggers maintain `cart.total_items` as a stored derived/cache column:
 
-Good trigger candidates for this schema:
-
-```text
-Update store rating when review changes.
-Prevent return requests for orders that are not delivered.
-Prevent voucher usage_count from exceeding buyer voucher amount during order changes.
+```sql
+SUM(cart_item.quantity)
 ```
 
-`cart.total_items` is intentionally not stored as a table column because it is a derived value. It should be calculated from `cart_item`, for example with `SUM(cart_item.quantity)` grouped by `cart_id`, or exposed through a view/query if the application needs to display it.
+This matches the EERD derived `total items` attribute while also satisfying the trigger requirement to calculate a derived attribute. Because it is stored as a cache, every insert, update, or delete on `cart_item` must update the parent `cart` row.
+
+`trg_return_request_before_insert` enforces a business rule that is not just a simple column check: a return request can only be created when the related order has a delivered shipment.
 
 The table-level numeric/date constraints and enum domains from Section 1 should not be duplicated as triggers, because the assignment says constraints that can be checked in table creation statements should not be validated using triggers.
 
