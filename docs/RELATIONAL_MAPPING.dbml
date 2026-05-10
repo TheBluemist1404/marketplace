@@ -1,0 +1,254 @@
+// DBML-style relational mapping generated from marketplace_eerd.
+// Paste into dbdiagram.io, or use as a compact DrawSQL-style reference.
+
+Table address {
+  address_id bigint [pk, increment, not null]
+  street varchar(180) [not null]
+  ward varchar(120)
+  district varchar(120)
+  city varchar(120) [not null]
+  country varchar(120) [not null]
+}
+
+Table administrator {
+  account_id bigint [pk, not null]
+  employee_id varchar(60) [not null]
+  staff_name varchar(160) [not null]
+  management_role varchar(80)
+  working_status enum('working','on_leave','inactive','terminated') [not null]
+}
+
+Table buyer {
+  account_id bigint [pk, not null]
+  first_name varchar(80) [not null]
+  last_name varchar(80) [not null]
+  date_of_birth date
+  gender enum('male','female','other','prefer_not_to_say')
+}
+
+Table buyer_address {
+  buyer_address_id bigint [pk, increment, not null]
+  buyer_id bigint [not null]
+  address_id bigint [not null]
+  recipient_name varchar(160) [not null]
+  recipient_phone varchar(30) [not null]
+  is_default tinyint(1) [not null]
+  default_buyer_id bigint [unique]
+
+  indexes {
+    (buyer_id, address_id, recipient_name, recipient_phone) [unique, name: 'uq_buyer_address_recipient']
+  }
+}
+
+Table buyer_voucher {
+  buyer_voucher_id bigint [pk, increment, not null]
+  buyer_id bigint [not null]
+  voucher_code varchar(60) [not null]
+  amount int [not null]
+  usage_count int [not null]
+
+  indexes {
+    (buyer_id, voucher_code) [unique, name: 'uq_buyer_voucher']
+  }
+}
+
+Table cart {
+  cart_id bigint [pk, increment, not null]
+  buyer_id bigint [not null, unique]
+  total_items int [not null] // Derived: SUM(cart_item.quantity) - duoc trigger tu cap nhat
+}
+
+Table cart_item {
+  cart_id bigint [pk, not null]
+  variant_id bigint [pk, not null]
+  quantity int [not null]
+  unit_price decimal(12,2) [not null]
+  time_added datetime [not null]
+}
+
+Table category {
+  category_id bigint [pk, increment, not null]
+  category_name varchar(120) [not null, unique]
+  description text
+}
+
+Table notification {
+  notification_id bigint [pk, increment, not null]
+  account_id bigint [not null]
+  title varchar(160) [not null]
+  content text [not null]
+  type enum('order','voucher','shipment','payment','return','system','promotion') [not null]
+  timestamp datetime [not null]
+  status enum('read','unread','archived') [not null]
+}
+
+Table `order` {
+  order_id bigint [pk, increment, not null]
+  buyer_id bigint [not null]
+  buyer_address_id bigint [not null]
+  buyer_voucher_id bigint
+  order_date datetime [not null]
+  order_status enum('pending','paid','processing','shipped','delivered','cancelled','return_requested') [not null]
+}
+
+Table order_item {
+  order_id bigint [pk, not null]
+  variant_id bigint [pk, not null]
+  quantity int [not null]
+  unit_price decimal(12,2) [not null]
+}
+
+Table payment {
+  payment_id bigint [pk, increment, not null]
+  order_id bigint [not null, unique]
+  payment_method enum('e_wallet','credit_card','bank_transfer','cash_on_delivery') [not null]
+  payment_time datetime [not null]
+  payment_status enum('pending','paid','failed','refunded','cancelled') [not null]
+  paid_amount decimal(12,2) [not null]
+}
+
+Table product {
+  product_id bigint [pk, increment, not null]
+  store_id bigint [not null]
+  category_id bigint [not null]
+  product_name varchar(180) [not null]
+  description text
+  creation_time datetime [not null]
+}
+
+Table product_variant {
+  variant_id bigint [pk, increment, not null]
+  product_id bigint [not null]
+  option_value varchar(160) [not null]
+  price decimal(12,2) [not null]
+  status enum('active','available','out_of_stock','discontinued') [not null]
+  stock_quantity int [not null]
+  creation_time datetime [not null]
+
+  indexes {
+    (product_id, option_value) [unique, name: 'uq_product_variant_option']
+  }
+}
+
+Table return_request {
+  request_id bigint [pk, increment, not null]
+  buyer_id bigint [not null]
+  admin_id bigint
+  order_id bigint [not null]
+  variant_id bigint [not null]
+  request_date date [not null]
+  reason text [not null]
+  request_status enum('pending','reviewing','approved','rejected','closed') [not null]
+  requested_refund_amount decimal(12,2) [not null]
+  handling_result text
+}
+
+Table review {
+  review_id bigint [pk, increment, not null]
+  buyer_id bigint [not null]
+  order_id bigint [not null]
+  variant_id bigint [not null]
+  content text [not null]
+  rating_score int [not null]
+  review_date date [not null]
+
+  indexes {
+    (buyer_id, order_id, variant_id) [unique, name: 'uq_buyer_order_variant_review']
+  }
+}
+
+Table review_media {
+  review_id bigint [pk, not null]
+  media_url varchar(500) [pk, not null]
+}
+
+Table seller {
+  account_id bigint [pk, not null]
+  tax_id varchar(60) [not null, unique]
+  business_type varchar(80)
+  owner_name varchar(160)
+  verification_status enum('pending','verified','rejected','suspended') [not null]
+  product_management text
+}
+
+Table shipment {
+  shipment_id bigint [pk, increment, not null]
+  order_id bigint [not null, unique]
+  buyer_address_id bigint [not null]
+  tracking_code varchar(80) [not null, unique]
+  shipping_method enum('standard','express','same_day','pickup') [not null]
+  shipping_status enum('processing','in_transit','delivered','failed','returned','cancelled') [not null]
+  estimated_delivery_date date
+  actual_delivery_date date
+}
+
+Table store {
+  store_id bigint [pk, increment, not null]
+  seller_id bigint [not null]
+  store_name varchar(160) [not null]
+  description text
+  creation_date datetime [not null]
+  phone_number varchar(30)
+}
+
+Table user_account {
+  account_id bigint [pk, increment, not null]
+  username varchar(80) [not null, unique]
+  password_hash varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  phone_number varchar(30)
+  creation_date datetime [not null]
+  account_status enum('active','inactive','suspended','locked','pending') [not null]
+  account_type enum('buyer','seller','administrator') [not null]
+}
+
+Table voucher {
+  voucher_code varchar(60) [pk, not null]
+  store_id bigint [not null]
+  discount_type enum('percentage','fixed_amount') [not null]
+  discount_value decimal(12,2) [not null]
+  global_usage_limit int
+  applicable_conditions text
+  start_date date [not null]
+  end_date date [not null]
+}
+
+Table voucher_condition {
+  condition_id bigint [pk, increment, not null]
+  voucher_code varchar(60) [not null]
+  condition_type enum('minimum_order_amount','category_id') [not null]
+  operator enum('=','>','>=','<','<=','!=') [not null]
+  value varchar(120) [not null]
+}
+
+Ref: administrator.(account_id) > user_account.(account_id)
+Ref: buyer.(account_id) > user_account.(account_id)
+Ref: buyer_address.(address_id) > address.(address_id)
+Ref: buyer_address.(buyer_id) > buyer.(account_id)
+Ref: buyer_voucher.(buyer_id) > buyer.(account_id)
+Ref: buyer_voucher.(voucher_code) > voucher.(voucher_code)
+Ref: cart.(buyer_id) > buyer.(account_id)
+Ref: cart_item.(cart_id) > cart.(cart_id)
+Ref: cart_item.(variant_id) > product_variant.(variant_id)
+Ref: notification.(account_id) > user_account.(account_id)
+Ref: `order`.(buyer_id) > buyer.(account_id)
+Ref: `order`.(buyer_address_id) > buyer_address.(buyer_address_id)
+Ref: `order`.(buyer_voucher_id) > buyer_voucher.(buyer_voucher_id)
+Ref: order_item.(order_id) > `order`.(order_id)
+Ref: order_item.(variant_id) > product_variant.(variant_id)
+Ref: payment.(order_id) > `order`.(order_id)
+Ref: product.(category_id) > category.(category_id)
+Ref: product.(store_id) > store.(store_id)
+Ref: product_variant.(product_id) > product.(product_id)
+Ref: return_request.(admin_id) > administrator.(account_id)
+Ref: return_request.(buyer_id) > buyer.(account_id)
+Ref: return_request.(order_id, variant_id) > order_item.(order_id, variant_id)
+Ref: review.(buyer_id) > buyer.(account_id)
+Ref: review.(order_id, variant_id) > order_item.(order_id, variant_id)
+Ref: review_media.(review_id) > review.(review_id)
+Ref: seller.(account_id) > user_account.(account_id)
+Ref: shipment.(buyer_address_id) > buyer_address.(buyer_address_id)
+Ref: shipment.(order_id) > `order`.(order_id)
+Ref: store.(seller_id) > seller.(account_id)
+Ref: voucher.(store_id) > store.(store_id)
+Ref: voucher_condition.(voucher_code) > voucher.(voucher_code)
