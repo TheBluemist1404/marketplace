@@ -1,6 +1,7 @@
 -- Marketplace sample data snapshot
 -- Generated from the live marketplace_eerd database.
 -- The seed is intentionally richer than the minimum assignment data so Section 3 can demo realistic marketplace behavior.
+-- Surrogate primary keys are AUTO_INCREMENT in the live schema; explicit IDs are kept here so the demo data is reproducible.
 -- Table `order` is quoted because ORDER is a MySQL keyword.
 
 USE marketplace_eerd;

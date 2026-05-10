@@ -1,6 +1,6 @@
 # Section 1 Table Schemas
 
-Generated from the live `marketplace_eerd` MySQL database after the enum-domain conversion and the `orders` to `` `order` `` table rename.
+Generated from the live `marketplace_eerd` MySQL database after the enum-domain conversion, the `orders` to `` `order` `` table rename, and the `AUTO_INCREMENT` surrogate-key update.
 
 Note: `` `order` `` is quoted because `ORDER` is a MySQL keyword.
 
@@ -8,14 +8,14 @@ Note: `` `order` `` is quoted because `ORDER` is a MySQL keyword.
 
 ```sql
 CREATE TABLE `address` (
-  `address_id` bigint NOT NULL,
+  `address_id` bigint NOT NULL AUTO_INCREMENT,
   `street` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ward` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `district` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `city` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `country` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`address_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `administrator`
@@ -51,7 +51,7 @@ CREATE TABLE `buyer` (
 
 ```sql
 CREATE TABLE `buyer_address` (
-  `buyer_address_id` bigint NOT NULL,
+  `buyer_address_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
   `address_id` bigint NOT NULL,
   `recipient_name` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -65,14 +65,14 @@ CREATE TABLE `buyer_address` (
   KEY `idx_buyer_address_address` (`address_id`),
   CONSTRAINT `fk_buyer_address_address` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`),
   CONSTRAINT `fk_buyer_address_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `buyer_voucher`
 
 ```sql
 CREATE TABLE `buyer_voucher` (
-  `buyer_voucher_id` bigint NOT NULL,
+  `buyer_voucher_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
   `voucher_code` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `amount` int NOT NULL DEFAULT '1',
@@ -86,19 +86,19 @@ CREATE TABLE `buyer_voucher` (
   CONSTRAINT `buyer_voucher_chk_1` CHECK ((`amount` >= 0)),
   CONSTRAINT `buyer_voucher_chk_2` CHECK ((`usage_count` >= 0)),
   CONSTRAINT `chk_buyer_voucher_usage` CHECK ((`usage_count` <= `amount`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `cart`
 
 ```sql
 CREATE TABLE `cart` (
-  `cart_id` bigint NOT NULL,
+  `cart_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
   PRIMARY KEY (`cart_id`),
   UNIQUE KEY `buyer_id` (`buyer_id`),
   CONSTRAINT `fk_cart_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `cart_item`
@@ -123,19 +123,19 @@ CREATE TABLE `cart_item` (
 
 ```sql
 CREATE TABLE `category` (
-  `category_id` bigint NOT NULL,
+  `category_id` bigint NOT NULL AUTO_INCREMENT,
   `category_name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`category_id`),
   UNIQUE KEY `category_name` (`category_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `notification`
 
 ```sql
 CREATE TABLE `notification` (
-  `notification_id` bigint NOT NULL,
+  `notification_id` bigint NOT NULL AUTO_INCREMENT,
   `account_id` bigint NOT NULL,
   `title` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
   `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -145,14 +145,14 @@ CREATE TABLE `notification` (
   PRIMARY KEY (`notification_id`),
   KEY `idx_notification_account` (`account_id`),
   CONSTRAINT `fk_notification_account` FOREIGN KEY (`account_id`) REFERENCES `user_account` (`account_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `order`
 
 ```sql
 CREATE TABLE `order` (
-  `order_id` bigint NOT NULL,
+  `order_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
   `buyer_address_id` bigint NOT NULL,
   `buyer_voucher_id` bigint DEFAULT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE `order` (
   CONSTRAINT `fk_orders_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
   CONSTRAINT `fk_orders_buyer_address` FOREIGN KEY (`buyer_address_id`) REFERENCES `buyer_address` (`buyer_address_id`),
   CONSTRAINT `fk_orders_buyer_voucher` FOREIGN KEY (`buyer_voucher_id`) REFERENCES `buyer_voucher` (`buyer_voucher_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1018 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `order_item`
@@ -189,7 +189,7 @@ CREATE TABLE `order_item` (
 
 ```sql
 CREATE TABLE `payment` (
-  `payment_id` bigint NOT NULL,
+  `payment_id` bigint NOT NULL AUTO_INCREMENT,
   `order_id` bigint NOT NULL,
   `payment_method` enum('e_wallet','credit_card','bank_transfer','cash_on_delivery') COLLATE utf8mb4_unicode_ci NOT NULL,
   `payment_time` datetime NOT NULL,
@@ -199,14 +199,14 @@ CREATE TABLE `payment` (
   UNIQUE KEY `order_id` (`order_id`),
   CONSTRAINT `fk_payment_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`),
   CONSTRAINT `payment_chk_1` CHECK ((`paid_amount` >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5018 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `product`
 
 ```sql
 CREATE TABLE `product` (
-  `product_id` bigint NOT NULL,
+  `product_id` bigint NOT NULL AUTO_INCREMENT,
   `store_id` bigint NOT NULL,
   `category_id` bigint NOT NULL,
   `product_name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -217,14 +217,14 @@ CREATE TABLE `product` (
   KEY `idx_product_category` (`category_id`),
   CONSTRAINT `fk_product_category` FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`),
   CONSTRAINT `fk_product_store` FOREIGN KEY (`store_id`) REFERENCES `store` (`store_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `product_variant`
 
 ```sql
 CREATE TABLE `product_variant` (
-  `variant_id` bigint NOT NULL,
+  `variant_id` bigint NOT NULL AUTO_INCREMENT,
   `product_id` bigint NOT NULL,
   `option_value` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
   `price` decimal(12,2) NOT NULL,
@@ -237,14 +237,14 @@ CREATE TABLE `product_variant` (
   CONSTRAINT `fk_variant_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
   CONSTRAINT `product_variant_chk_1` CHECK ((`price` >= 0)),
   CONSTRAINT `product_variant_chk_2` CHECK ((`stock_quantity` >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `return_request`
 
 ```sql
 CREATE TABLE `return_request` (
-  `request_id` bigint NOT NULL,
+  `request_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
   `admin_id` bigint DEFAULT NULL,
   `order_id` bigint NOT NULL,
@@ -262,14 +262,14 @@ CREATE TABLE `return_request` (
   CONSTRAINT `fk_return_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
   CONSTRAINT `fk_return_order_item` FOREIGN KEY (`order_id`, `variant_id`) REFERENCES `order_item` (`order_id`, `variant_id`),
   CONSTRAINT `return_request_chk_1` CHECK ((`requested_refund_amount` >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3007 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `review`
 
 ```sql
 CREATE TABLE `review` (
-  `review_id` bigint NOT NULL,
+  `review_id` bigint NOT NULL AUTO_INCREMENT,
   `buyer_id` bigint NOT NULL,
   `order_id` bigint NOT NULL,
   `variant_id` bigint NOT NULL,
@@ -283,7 +283,7 @@ CREATE TABLE `review` (
   CONSTRAINT `fk_review_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `buyer` (`account_id`),
   CONSTRAINT `fk_review_order_item` FOREIGN KEY (`order_id`, `variant_id`) REFERENCES `order_item` (`order_id`, `variant_id`),
   CONSTRAINT `review_chk_1` CHECK ((`rating_score` between 1 and 5))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9013 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `review_media`
@@ -317,7 +317,7 @@ CREATE TABLE `seller` (
 
 ```sql
 CREATE TABLE `shipment` (
-  `shipment_id` bigint NOT NULL,
+  `shipment_id` bigint NOT NULL AUTO_INCREMENT,
   `order_id` bigint NOT NULL,
   `buyer_address_id` bigint NOT NULL,
   `tracking_code` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -331,14 +331,14 @@ CREATE TABLE `shipment` (
   KEY `idx_shipment_address` (`buyer_address_id`),
   CONSTRAINT `fk_shipment_buyer_address` FOREIGN KEY (`buyer_address_id`) REFERENCES `buyer_address` (`buyer_address_id`),
   CONSTRAINT `fk_shipment_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7018 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `store`
 
 ```sql
 CREATE TABLE `store` (
-  `store_id` bigint NOT NULL,
+  `store_id` bigint NOT NULL AUTO_INCREMENT,
   `seller_id` bigint NOT NULL,
   `store_name` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
@@ -347,14 +347,14 @@ CREATE TABLE `store` (
   PRIMARY KEY (`store_id`),
   KEY `idx_store_seller` (`seller_id`),
   CONSTRAINT `fk_store_seller` FOREIGN KEY (`seller_id`) REFERENCES `seller` (`account_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `user_account`
 
 ```sql
 CREATE TABLE `user_account` (
-  `account_id` bigint NOT NULL,
+  `account_id` bigint NOT NULL AUTO_INCREMENT,
   `username` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -365,7 +365,7 @@ CREATE TABLE `user_account` (
   PRIMARY KEY (`account_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## `voucher`
@@ -393,7 +393,7 @@ CREATE TABLE `voucher` (
 
 ```sql
 CREATE TABLE `voucher_condition` (
-  `condition_id` bigint NOT NULL,
+  `condition_id` bigint NOT NULL AUTO_INCREMENT,
   `voucher_code` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `condition_type` enum('minimum_order_amount','category_id') COLLATE utf8mb4_unicode_ci NOT NULL,
   `operator` enum('=','>','>=','<','<=','!=') COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -401,5 +401,5 @@ CREATE TABLE `voucher_condition` (
   PRIMARY KEY (`condition_id`),
   KEY `idx_voucher_condition_voucher` (`voucher_code`),
   CONSTRAINT `fk_condition_voucher` FOREIGN KEY (`voucher_code`) REFERENCES `voucher` (`voucher_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
